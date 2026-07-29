@@ -27,19 +27,19 @@ A secure RESTful API for Filipino recipes built with **Slim Framework**, **MySQL
 
 ##  Features
 
-- ✅ Retrieve all Filipino foods
-- ✅ Get food by ID
-- ✅ Search food by name
-- ✅ Get all categories
-- ✅ Get all ingredients
-- ✅ Add new food (POST)
-- ✅ Get random food
-- ✅ Get foods by category
-- ✅ Get foods by origin
-- ✅ Token-based authentication
-- ✅ Input sanitization
-- ✅ JSON responses
-- ✅ Secure error handling
+-  Retrieve all Filipino foods
+-  Get food by ID
+-  Search food by name
+-  Get all categories
+-  Get all ingredients
+-  Add new food (POST)
+-  Get random food
+-  Get foods by category
+-  Get foods by origin
+-  Token-based authentication
+-  Input sanitization
+-  JSON responses
+-  Secure error handling
 
 ---
 
@@ -64,8 +64,8 @@ A secure RESTful API for Filipino recipes built with **Slim Framework**, **MySQL
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Miguel-Frago/filippino-cookbook-api-frago.git
-cd filippino-cookbook-api-frago
+git clone https://github.com/Miguel-Frago/filipino-cookbook-api-frago.git
+cd filipino-cookbook-api-frago
 ```
 
 ### 2. Install Composer Dependencies
@@ -123,7 +123,7 @@ php -S localhost:8080 -t public
 **Option B: XAMPP**
 1. Place project in `C:\xampp\htdocs\`
 2. Start Apache and MySQL
-3. Access at: `http://localhost/filippino-cookbook-api-frago/public/`
+3. Access at: `http://localhost/filipino-cookbook-api-frago/public/`
 
 ---
 
@@ -533,7 +533,7 @@ Content-Type: application/json
 
 ---
 
-## 🧪 Testing Evidence
+##  Testing Evidence
 
 ### Welcome Route (No Token)
 ![Welcome Route](screenshots/welcome.png)
@@ -576,10 +576,10 @@ Content-Type: application/json
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
-filippino-cookbook-api-frago/
+filipino-cookbook-api-frago/
 ├── public/
 │   └── index.php              # Main API entry point
 ├── vendor/                    # Composer dependencies
@@ -598,7 +598,7 @@ filippino-cookbook-api-frago/
 **Course:** Bachelor of Science in Information Technology  
 **Year and Section:** 4-B
 **GitHub:** [Miguel-Frago](https://github.com/Miguel-Frago)  
-**Repository:** [filippino-cookbook-api-frago](https://github.com/Miguel-Frago/filippino-cookbook-api-frago)  
+**Repository:** [filipino-cookbook-api-frago](https://github.com/Miguel-Frago/filipino-cookbook-api-frago)  
 **Date Completed:** July 2026
 
 ---
