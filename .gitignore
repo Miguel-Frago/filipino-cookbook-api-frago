@@ -1,0 +1,28 @@
+# Vendor dependencies
+/vendor/
+
+# Composer
+composer.phar
+composer.lock
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Temporary files
+*.tmp
+*.temp
