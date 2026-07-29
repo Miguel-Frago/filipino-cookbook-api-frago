@@ -1,4 +1,3 @@
-```markdown
 # Filipino Cookbook API
 
 A secure RESTful API for Filipino recipes built with **Slim Framework**, **MySQL**, and **Token-Based Authentication**.
