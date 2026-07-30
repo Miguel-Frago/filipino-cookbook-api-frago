@@ -703,7 +703,7 @@ Expected Response:
 ![Random Food](screenshots/get-random-food.png)
 
 #### Foods by Category
-![Foods by Category](screenshots/get-foods-by-category.png)
+![Foods by Category](screenshots/get-food-by-categories.png)
 
 #### Foods by Origin
 ![Foods by Origin](screenshots/get-food-by-origin.png)
