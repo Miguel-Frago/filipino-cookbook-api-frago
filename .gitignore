@@ -26,3 +26,8 @@ error_log
 # Temporary files
 *.tmp
 *.temp
+
+# Environment files - DO NOT COMMIT THESE
+.env
+.env.*
+!.env.example

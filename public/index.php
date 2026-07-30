@@ -4,14 +4,19 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
+use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// ---------- Load Environment Variables ----------
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
 // ---------- Database configuration ----------
-$dbHost = 'localhost';
-$dbName = 'filipino_cookbook_api';
-$dbUser = 'root';      
-$dbPass = '';
+$dbHost = $_ENV['DB_HOST'] ?? 'localhost';
+$dbName = $_ENV['DB_NAME'] ?? 'filipino_cookbook_api';
+$dbUser = $_ENV['DB_USER'] ?? 'root';
+$dbPass = $_ENV['DB_PASS'] ?? '';
 
 try {
     $db = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4", $dbUser, $dbPass);
@@ -21,7 +26,7 @@ try {
 }
 
 // ---------- Token constant ----------
-define('API_TOKEN', 'dmmmsu-cookbook-token-2026');
+define('API_TOKEN', $_ENV['API_TOKEN'] ?? 'dmmmsu-cookbook-token-2026');
 
 // ---------- Create Slim app ----------
 $app = AppFactory::create();
@@ -196,7 +201,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // 6. Get foods by category ID (NEW ENHANCEMENT)
+    // 6. Get foods by category ID
     $group->get('/categories/{id}/foods', function (Request $request, Response $response, array $args) use ($db) {
         $category_id = (int)$args['id'];
         
@@ -248,7 +253,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // 8. Get foods by origin ID (NEW ENHANCEMENT)
+    // 8. Get foods by origin ID
     $group->get('/origins/{id}/foods', function (Request $request, Response $response, array $args) use ($db) {
         $origin_id = (int)$args['id'];
         
@@ -385,7 +390,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
     });
 
-})->add($tokenMiddleware);  // Token validation applied to ALL /api routes
+})->add($tokenMiddleware);
 
 // ---------- Run the app ----------
 $app->run();
