@@ -706,7 +706,7 @@ Expected Response:
 ![Foods by Category](screenshots/get-foods-by-category.png)
 
 #### Foods by Origin
-![Foods by Origin](screenshots/get-origin-foods.png)
+![Foods by Origin](screenshots/get-food-by-origin.png)
 
 #### Validation Error
 ![Validation Error](screenshots/validation-error.png)
@@ -722,16 +722,16 @@ Expected Response:
 ![Get All Foods](screenshots/get-all-foods.png)
 
 ### Get Food by ID
-![Get Food by ID](screenshots/get-food-by-id.png)
+![Get Food by ID](screenshots/get-food-by-ID.png)
 
 ### Search Food by Name
-![Search Food](screenshots/search-food.png)
+![Search Food](screenshots/get-food-by-NAME.png)
 
 ### Get All Categories
-![Get All Categories](screenshots/get-categories.png)
+![Get All Categories](screenshots/get-all-categories.png)
 
 ### Get All Ingredients
-![Get All Ingredients](screenshots/get-ingredients.png)
+![Get All Ingredients](screenshots/get-all-ingredients.png)
 
 ### Unauthorized Access (No Token)
 ![Unauthorized](screenshots/unauthorized.png)
