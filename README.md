@@ -753,12 +753,12 @@ filipino-cookbook-api-frago/
 ├── screenshots/               # Testing evidence screenshots
 │   ├── welcome.png
 │   ├── get-all-foods.png
-│   ├── get-food-by-id.png
-│   ├── search-food.png
-│   ├── get-categories.png
-│   ├── get-category-foods.png
-│   ├── get-ingredients.png
-│   ├── get-origin-foods.png
+│   ├── get-food-by-ID.png
+│   ├── get-food-by-NAME.png
+│   ├── get-all-categories.png
+│   ├── get-food-by-categories.png
+│   ├── get-all-ingredients.png
+│   ├── get-food-by-origin.png
 │   ├── get-random-food.png
 │   ├── post-food.png
 │   ├── unauthorized.png
