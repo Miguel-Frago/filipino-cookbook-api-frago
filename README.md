@@ -800,4 +800,3 @@ This project is for educational purposes only.
 - **Thunder Client** – API testing tool
 - **Composer** – Dependency management
 - **vlucas/phpdotenv** – Environment variable management
-```
