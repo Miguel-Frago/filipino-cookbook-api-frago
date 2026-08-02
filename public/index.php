@@ -34,27 +34,6 @@ $app = AppFactory::create();
 // Add JSON body parsing middleware
 $app->addBodyParsingMiddleware();
 
-// ============================================================
-// CORS MIDDLEWARE - Allow cross-origin requests
-// ============================================================
-
-$app->add(function ($request, $handler) {
-    $response = $handler->handle($request);
-    
-    // Allow all origins (or specify specific ones)
-    $response = $response
-        ->withHeader('Access-Control-Allow-Origin', '*')
-        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    
-    // Handle preflight OPTIONS requests
-    if ($request->getMethod() === 'OPTIONS') {
-        return $response->withStatus(200);
-    }
-    
-    return $response;
-});
-
 // ---------- Middleware for token validation ----------
 $tokenMiddleware = function (Request $request, $handler) {
     $authHeader = $request->getHeaderLine('Authorization');
@@ -112,7 +91,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // 2. Get random food (STATIC ROUTE - comes BEFORE {id})
+    // 2. Get random food
     $group->get('/foods/random', function (Request $request, Response $response) use ($db) {
         $stmt = $db->query("
             SELECT f.food_id, f.food_name, f.instructions,
@@ -149,7 +128,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // 3. Search food by name (STATIC ROUTE - comes BEFORE {id})
+    // 3. Search food by name
     $group->get('/foods/search/{name}', function (Request $request, Response $response, array $args) use ($db) {
         $name = '%' . $args['name'] . '%';
         $stmt = $db->prepare("
@@ -179,7 +158,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // 4. Get food by ID (VARIABLE ROUTE - comes AFTER static routes)
+    // 4. Get food by ID
     $group->get('/foods/{id}', function (Request $request, Response $response, array $args) use ($db) {
         $id = (int)$args['id'];
         $stmt = $db->prepare("
@@ -214,13 +193,10 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // ============================================================
-    // 4b. Get ingredients of a specific food (NEW ENDPOINT)
-    // ============================================================
+    // 4b. Get ingredients of a specific food
     $group->get('/foods/{id}/ingredients', function (Request $request, Response $response, array $args) use ($db) {
         $id = (int)$args['id'];
         
-        // Check if food exists
         $foodCheck = $db->prepare("SELECT food_id, food_name FROM foods WHERE food_id = ?");
         $foodCheck->execute([$id]);
         $food = $foodCheck->fetch(PDO::FETCH_ASSOC);
@@ -233,7 +209,6 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
             return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
         }
 
-        // Get ingredients
         $stmt = $db->prepare("
             SELECT i.ingredient_id, i.ingredient_name
             FROM food_ingredients fi
@@ -464,6 +439,31 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
     });
 
 })->add($tokenMiddleware);
+
+// ============================================================
+// GLOBAL CORS MIDDLEWARE - MUST BE HERE (AFTER ROUTES, BEFORE RUN)
+// ============================================================
+
+$app->add(function ($request, $handler) {
+    // 1. Handle preflight OPTIONS requests
+    if ($request->getMethod() === 'OPTIONS') {
+        $response = new \Slim\Psr7\Response();
+        return $response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+            ->withStatus(200);
+    }
+
+    // 2. Handle normal requests
+    $response = $handler->handle($request);
+
+    // 3. Add CORS headers to response
+    return $response
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+});
 
 // ---------- Run the app ----------
 $app->run();
