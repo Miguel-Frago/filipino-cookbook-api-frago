@@ -26,19 +26,24 @@ A secure RESTful API for Filipino recipes built with **Slim Framework**, **MySQL
 
 ##  Features
 
+### Core Features
 -  Retrieve all Filipino foods
 -  Get food by ID
 -  Search food by name
 -  Get all categories
 -  Get all ingredients
 -  Add new food (POST)
+-  Token-based authentication
+-  JSON responses
+-  Secure error handling
+
+### Enhancements (Added)
 -  Get random food
 -  Get foods by category
 -  Get foods by origin
--  Token-based authentication
 -  Input sanitization
--  JSON responses
--  Secure error handling
+-  Input validation
+-  Environment variable support (`.env`)
 
 ---
 
@@ -55,6 +60,7 @@ A secure RESTful API for Filipino recipes built with **Slim Framework**, **MySQL
 | **XAMPP** | Local development server |
 | **Thunder Client** | API testing |
 | **Git/GitHub** | Version control |
+| **vlucas/phpdotenv** | Environment variable management |
 
 ---
 
@@ -103,14 +109,43 @@ foods → food_ingredients ← ingredients
 
 ### 4. Configure Database Connection
 
-Open `public/index.php` and update these lines:
+ **IMPORTANT:** This API uses environment variables for secure configuration. **DO NOT edit `public/index.php` directly!**
 
-```php
-$dbHost = 'localhost';
-$dbName = 'filipino_cookbook_api';
-$dbUser = 'root';       // Your MySQL username
-$dbPass = '';           // Your MySQL password
+**Step 1:** Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
 ```
+
+**Step 2:** Open `.env` and update your credentials:
+```env
+# Database Configuration
+DB_HOST=localhost
+DB_NAME=filipino_cookbook_api
+DB_USER=root          # Your MySQL username
+DB_PASS=              # Your MySQL password (leave blank if none)
+
+# API Security
+API_TOKEN=dmmmsu-cookbook-token-2026  # Default token (you can change this)
+```
+
+**Step 3:** Save the file
+
+**What each variable means:**
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DB_HOST` | MySQL server address | `localhost` |
+| `DB_NAME` | Database name | `filipino_cookbook_api` |
+| `DB_USER` | MySQL username | `root` |
+| `DB_PASS` | MySQL password | `password123` (or blank) |
+| `API_TOKEN` | Bearer token for API access | `dmmmsu-cookbook-token-2026` |
+
+**Security Notes:**
+-  The `.env` file is already in `.gitignore` – it will NOT be committed to GitHub
+-  Your credentials are now secure and NOT exposed in the code
+-  `public/index.php` reads from `.env` automatically – no editing needed
+-  **NEVER** commit `.env` to GitHub
+-  **NEVER** share your `.env` file publicly
 
 ### 5. Start the Server
 
@@ -130,12 +165,41 @@ php -S localhost:8080 -t public
 
 ### Method: Bearer Token Authentication
 
-**Token:** `dmmmsu-cookbook-token-2026`
+**Default Token (For Testing):** `dmmmsu-cookbook-token-2026`
 
 All protected endpoints require this header:
 
 ```http
 Authorization: Bearer dmmmsu-cookbook-token-2026
+```
+
+### How to Change the Token
+
+You can change the token to anything you want:
+
+**1. Open `.env` file:**
+```bash
+notepad .env   # Windows
+nano .env      # Linux/Mac
+```
+
+**2. Change the token:**
+```env
+# Change this line
+API_TOKEN=dmmmsu-cookbook-token-2026
+
+# To anything you want
+API_TOKEN=my-custom-token-2026
+```
+
+**3. Restart the server:**
+```bash
+php -S localhost:8080 -t public
+```
+
+**4. Use your new token:**
+```http
+Authorization: Bearer my-custom-token-2026
 ```
 
 ### Missing or Invalid Token Response (401):
@@ -159,17 +223,17 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 ### Protected Routes (Token Required)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/foods` | Get all foods with ingredients |
-| `GET` | `/api/foods/{id}` | Get food by ID |
-| `GET` | `/api/foods/search/{name}` | Search foods by name |
-| `GET` | `/api/foods/random` | Get a random Filipino food |
-| `GET` | `/api/categories` | Get all categories |
-| `GET` | `/api/categories/{id}/foods` | Get foods by category |
-| `GET` | `/api/ingredients` | Get all ingredients |
-| `GET` | `/api/origins/{id}/foods` | Get foods by origin |
-| `POST` | `/api/foods` | Add a new food |
+| Method | Endpoint | Description | Type |
+|--------|----------|-------------|------|
+| `GET` | `/api/foods` | Get all foods with ingredients | Core |
+| `GET` | `/api/foods/{id}` | Get food by ID | Core |
+| `GET` | `/api/foods/search/{name}` | Search foods by name | Core |
+| `GET` | `/api/categories` | Get all categories | Core |
+| `GET` | `/api/ingredients` | Get all ingredients | Core |
+| `POST` | `/api/foods` | Add a new food | Core |
+| `GET` | `/api/foods/random` | Get a random Filipino food |  Enhancement |
+| `GET` | `/api/categories/{id}/foods` | Get foods by category |  Enhancement |
+| `GET` | `/api/origins/{id}/foods` | Get foods by origin |  Enhancement |
 
 ---
 
@@ -183,7 +247,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -216,7 +280,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -255,7 +319,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -280,7 +344,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 ---
 
-### 4. Get Random Food
+### 4. Get Random Food  ENHANCEMENT
 
 **Endpoint:** `GET /api/foods/random`
 
@@ -288,7 +352,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -312,6 +376,14 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 }
 ```
 
+**Example Error Response (404 Not Found):**
+```json
+{
+  "status": "error",
+  "message": "No foods found"
+}
+```
+
 ---
 
 ### 5. Get All Categories
@@ -322,7 +394,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -346,7 +418,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 ---
 
-### 6. Get Foods by Category
+### 6. Get Foods by Category  ENHANCEMENT
 
 **Endpoint:** `GET /api/categories/{id}/foods`
 
@@ -354,7 +426,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -398,7 +470,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -418,7 +490,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 ---
 
-### 8. Get Foods by Origin
+### 8. Get Foods by Origin  ENHANCEMENT
 
 **Endpoint:** `GET /api/origins/{id}/foods`
 
@@ -426,7 +498,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 ```
 
 **Example Request:**
@@ -470,7 +542,7 @@ Authorization: Bearer dmmmsu-cookbook-token-2026
 
 **Headers:**
 ```
-Authorization: Bearer dmmmsu-cookbook-token-2026
+Authorization: Bearer YOUR_TOKEN
 Content-Type: application/json
 ```
 
@@ -529,6 +601,115 @@ Content-Type: application/json
 | **Input Validation** | Validates required fields and foreign key existence |
 | **Prepared SQL Statements** | Prevents SQL injection attacks |
 | **Secure Error Handling** | No sensitive database/error details exposed |
+| **Environment Variables** | Credentials stored in `.env` (excluded from GitHub) |
+
+---
+
+##  Optional API Enhancements
+
+### Overview
+
+The following enhancements were added to the original Filipino Cookbook API as part of the optional enhancement requirements.
+
+### 1. New Endpoints Added
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/foods/random` | GET | Returns a random Filipino food with all details |
+| `/api/categories/{id}/foods` | GET | Returns all foods in a specific category |
+| `/api/origins/{id}/foods` | GET | Returns all foods from a specific origin |
+
+### 2. Security Features Added
+
+| Feature | Description | Implementation |
+|---------|-------------|----------------|
+| **Input Sanitization** | Prevents XSS attacks | Uses `trim()` and `htmlspecialchars()` on user inputs |
+| **Input Validation** | Ensures data integrity | Validates required fields, foreign key existence, and data types |
+| **Environment Variables** | Protects sensitive data | Uses `.env` file for configuration (excluded from GitHub) |
+
+### 3. Validation and Error Handling Improvements
+
+| Improvement | Description |
+|-------------|-------------|
+| **Required Field Validation** | Checks all required fields in POST requests |
+| **Foreign Key Validation** | Validates `category_id`, `origin_id`, and `ingredient_ids` exist |
+| **Clear Error Messages** | Returns specific, user-friendly error messages |
+| **Appropriate Status Codes** | Uses correct HTTP status codes (400, 404, 201, 401, etc.) |
+
+### 4. File Modifications
+
+| File | Changes Made |
+|------|--------------|
+| `public/index.php` | Added 3 new endpoints, input sanitization, input validation |
+| `.env.example` | Added environment variable support for secure configuration |
+| `.gitignore` | Added `.env` to prevent sensitive data exposure |
+| `composer.json` | Added `vlucas/phpdotenv` dependency |
+
+### 5. How to Test the Enhancements
+
+#### Test Random Food Endpoint
+```http
+GET http://localhost:8080/api/foods/random
+Authorization: Bearer dmmmsu-cookbook-token-2026
+```
+
+#### Test Foods by Category
+```http
+GET http://localhost:8080/api/categories/4/foods
+Authorization: Bearer dmmmsu-cookbook-token-2026
+```
+
+#### Test Foods by Origin
+```http
+GET http://localhost:8080/api/origins/2/foods
+Authorization: Bearer dmmmsu-cookbook-token-2026
+```
+
+#### Test Input Sanitization
+Try adding a food with HTML tags:
+```json
+{
+  "food_name": "<script>alert('test')</script>Dinengdeng",
+  "category_id": 7,
+  "origin_id": 3,
+  "instructions": "Boil vegetables...",
+  "ingredient_ids": [10, 15, 22]
+}
+```
+The API will sanitize the input, converting `<script>` to `&lt;script&gt;`.
+
+#### Test Validation
+Try adding a food with invalid `category_id`:
+```json
+{
+  "food_name": "Test Food",
+  "category_id": 99,
+  "origin_id": 3,
+  "instructions": "Test instructions",
+  "ingredient_ids": [10, 15, 22]
+}
+```
+Expected Response:
+```json
+{
+  "status": "error",
+  "message": "Invalid category_id"
+}
+```
+
+### 6. Screenshots of Enhancements
+
+#### Random Food Endpoint
+![Random Food](screenshots/get-random-food.png)
+
+#### Foods by Category
+![Foods by Category](screenshots/get-food-by-categories.png)
+
+#### Foods by Origin
+![Foods by Origin](screenshots/get-food-by-origin.png)
+
+#### Validation Error
+![Validation Error](screenshots/validation-error.png)
 
 ---
 
@@ -543,23 +724,14 @@ Content-Type: application/json
 ### Get Food by ID
 ![Get Food by ID](screenshots/get-food-by-ID.png)
 
-### Get Food by NAME
-![Get Food by NAME](screenshots/get-food-by-NAME.png)
+### Search Food by Name
+![Search Food](screenshots/get-food-by-NAME.png)
 
 ### Get All Categories
 ![Get All Categories](screenshots/get-all-categories.png)
 
-### Get Food by Categories
-![Get Food by Categories](screenshots/get-food-by-categories.png)
-
 ### Get All Ingredients
 ![Get All Ingredients](screenshots/get-all-ingredients.png)
-
-### Get Food by Origin
-![Get Food by Origin](screenshots/get-food-by-origin.png)
-
-### Get Random Food
-![Get Random Food](screenshots/get-random-food.png)
 
 ### Unauthorized Access (No Token)
 ![Unauthorized](screenshots/unauthorized.png)
@@ -567,11 +739,8 @@ Content-Type: application/json
 ### Add New Food (POST)
 ![Add New Food](screenshots/post-food.png)
 
-### Food Not Found -404 (GET)
+### Food Not Found (404)
 ![Food Not Found](screenshots/food-not-found.png)
-
-### Validation Error -400 (POST)
-![Validation Error](screenshots/validation-error.png)
 
 ---
 
@@ -581,7 +750,23 @@ Content-Type: application/json
 filipino-cookbook-api-frago/
 ├── public/
 │   └── index.php              # Main API entry point
+├── screenshots/               # Testing evidence screenshots
+│   ├── welcome.png
+│   ├── get-all-foods.png
+│   ├── get-food-by-ID.png
+│   ├── get-food-by-NAME.png
+│   ├── get-all-categories.png
+│   ├── get-food-by-categories.png
+│   ├── get-all-ingredients.png
+│   ├── get-food-by-origin.png
+│   ├── get-random-food.png
+│   ├── post-food.png
+│   ├── unauthorized.png
+│   ├── food-not-found.png
+│   └── validation-error.png
 ├── vendor/                    # Composer dependencies
+├── .env                       # Environment variables (local - NOT on GitHub)
+├── .env.example               # Environment variables template
 ├── .gitignore                 # Git ignore rules
 ├── composer.json              # Composer configuration
 ├── composer.lock              # Composer lock file
@@ -595,7 +780,7 @@ filipino-cookbook-api-frago/
 
 **Developer:** Miguelito Frago  
 **Course:** Bachelor of Science in Information Technology  
-**Year and Section:** 4-B
+**Year and Section:** 4-B  
 **GitHub:** [Miguel-Frago](https://github.com/Miguel-Frago)  
 **Repository:** [filipino-cookbook-api-frago](https://github.com/Miguel-Frago/filipino-cookbook-api-frago)  
 **Date Completed:** July 2026
@@ -614,4 +799,5 @@ This project is for educational purposes only.
 - **MySQL** – Database management
 - **Thunder Client** – API testing tool
 - **Composer** – Dependency management
+- **vlucas/phpdotenv** – Environment variable management
 ```
