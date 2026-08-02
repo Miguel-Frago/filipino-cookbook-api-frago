@@ -34,6 +34,27 @@ $app = AppFactory::create();
 // Add JSON body parsing middleware
 $app->addBodyParsingMiddleware();
 
+// ============================================================
+// CORS MIDDLEWARE - Allow cross-origin requests
+// ============================================================
+
+$app->add(function ($request, $handler) {
+    $response = $handler->handle($request);
+    
+    // Allow all origins (or specify specific ones)
+    $response = $response
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    
+    // Handle preflight OPTIONS requests
+    if ($request->getMethod() === 'OPTIONS') {
+        return $response->withStatus(200);
+    }
+    
+    return $response;
+});
+
 // ---------- Middleware for token validation ----------
 $tokenMiddleware = function (Request $request, $handler) {
     $authHeader = $request->getHeaderLine('Authorization');
@@ -193,6 +214,45 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
+    // ============================================================
+    // 4b. Get ingredients of a specific food (NEW ENDPOINT)
+    // ============================================================
+    $group->get('/foods/{id}/ingredients', function (Request $request, Response $response, array $args) use ($db) {
+        $id = (int)$args['id'];
+        
+        // Check if food exists
+        $foodCheck = $db->prepare("SELECT food_id, food_name FROM foods WHERE food_id = ?");
+        $foodCheck->execute([$id]);
+        $food = $foodCheck->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$food) {
+            $response->getBody()->write(json_encode([
+                'status'  => 'error',
+                'message' => 'Food not found'
+            ]));
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+        }
+
+        // Get ingredients
+        $stmt = $db->prepare("
+            SELECT i.ingredient_id, i.ingredient_name
+            FROM food_ingredients fi
+            JOIN ingredients i ON fi.ingredient_id = i.ingredient_id
+            WHERE fi.food_id = ?
+            ORDER BY i.ingredient_name
+        ");
+        $stmt->execute([$id]);
+        $ingredients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response->getBody()->write(json_encode([
+            'food_id' => $id,
+            'food_name' => $food['food_name'],
+            'ingredient_count' => count($ingredients),
+            'ingredients' => $ingredients
+        ]));
+        return $response->withHeader('Content-Type', 'application/json');
+    });
+
     // 5. Get all categories
     $group->get('/categories', function (Request $request, Response $response) use ($db) {
         $stmt = $db->query("SELECT category_id, category_name FROM categories ORDER BY category_id");
@@ -297,7 +357,7 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
         return $response->withHeader('Content-Type', 'application/json');
     });
 
-    // 9. Add new food (POST)
+    // 9. Add new food (POST) - WITH DUPLICATE CHECKER
     $group->post('/foods', function (Request $request, Response $response) use ($db) {
         $data = $request->getParsedBody();
 
@@ -312,11 +372,24 @@ $app->group('/api', function (RouteCollectorProxy $group) use ($db) {
             }
         }
 
-        // Input Sanitization (Security Enhancement)
+        // Input Sanitization
         $food_name = trim(htmlspecialchars($data['food_name']));
         $instructions = trim(htmlspecialchars($data['instructions']));
         $category_id = (int)$data['category_id'];
         $origin_id = (int)$data['origin_id'];
+
+        // ============================================================
+        // DUPLICATE CHECKER - Prevent duplicate food names
+        // ============================================================
+        $checkStmt = $db->prepare("SELECT food_id FROM foods WHERE LOWER(food_name) = LOWER(?)");
+        $checkStmt->execute([$food_name]);
+        if ($checkStmt->fetch()) {
+            $response->getBody()->write(json_encode([
+                'status'  => 'error',
+                'message' => 'A food with this name already exists. Please use a different name.'
+            ]));
+            return $response->withStatus(409)->withHeader('Content-Type', 'application/json');
+        }
 
         // Validate category_id
         $catStmt = $db->prepare("SELECT category_id FROM categories WHERE category_id = ?");
